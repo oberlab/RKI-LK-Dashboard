@@ -18,9 +18,15 @@ data <- fromJSON(file = paste0("https://api.corona-zahlen.org/districts/", ags))
 current_data<- as.data.frame(data$data[[ags]])
 current_data_meta <- as.data.frame(data$meta)
 
+call_date <- as.POSIXct(current_data_meta$lastCheckedForUpdate, format("%Y-%m-%dT%H:%M:%S"), tz ="UTC")
+call_date <- call_date + 1*60*60 #um die Stunde Zeitverschiebung einzubeziehen
+
+data_date <- as.POSIXct(current_data_meta$lastUpdate, format("%Y-%m-%dT%H:%M:%S"), tz ="UTC")
+
 
 current_data_out <- data.frame(
-		"date" = as.Date(current_data_meta$lastCheckedForUpdate, format = "%Y-%m-%d"),
+		"data_date" = data_date,
+		"call_date" = call_date,
 		"total_cases" = as.integer(current_data$cases),
 		"active_cases" = as.integer(current_data$cases - current_data$recovered - current_data$deaths),
 		"closed_cases" = as.integer(current_data$recovered),
@@ -37,6 +43,19 @@ current_data_out <- data.frame(
 ## Daten für den Shortplot
 raw_incidence14 <- fromJSON(file = paste0("https://api.corona-zahlen.org/districts/", ags, "/history/incidence/14"), method='C')
 raw_cases14 <- fromJSON(file = paste0("https://api.corona-zahlen.org/districts/", ags, "/history/cases/14"), method='C')
+
+raw_incidence14_date <- raw_incidence14$meta$lastUpdate
+raw_cases14_date <- raw_cases14$meta$lastUpdate
+
+if(raw_cases14_date == raw_incidence14_date){
+  daten_datum <- as.POSIXct(raw_incidence14_date, format("%Y-%m-%dT%H:%M:%S"), tz ="UTC")
+} else {
+  daten_datum <- NA
+}
+
+call_date <- as.POSIXct(raw_cases14$meta$lastCheckedForUpdate, format("%Y-%m-%dT%H:%M:%S"), tz ="UTC")
+  
+
 
 #Aus dem RKI-Datensatz die richtigen Daten herauslesen
 incidence14 <- raw_incidence14$data[[ags]]$history
@@ -56,5 +75,76 @@ colnames(cases14) <- c('Neuinfektionen','Datum')
 short_plot_dataframe <- merge(incidence14, cases14, by='Datum')
 short_plot_dataframe <- melt(short_plot_dataframe, id.vars=c("Datum"), na.rm = TRUE)
 
+```
+
+
+```{r}
+# <- png::readPNG("dashboard-app/data_background.png")
+background <- get_png("dashboard-app/data_background.png")
+
+dat <- data.frame(
+  value = c(20, 30, 30, 40),
+  posx = c(0, 10),
+  posy = c(0, 10)
+)
+
+dat_label_change <- data.frame(
+  value = c("+20", "+30", "+30", "40"),
+  posx = c(0.7, 3.5, 6.3, 9.2),
+  posy = c(4.3, 4.3, 4.3, 4.3)
+)
+
+dat_label_total <- data.frame(
+  value = c("Gesamt: 2000", "Gesamt: 1330", "Gesamt: 1221"),
+  posx = c(0.7, 3.5, 6.3),
+  posy = c(3.4, 3.4, 3.4)
+)
+
+ggplot(dat, aes(x=posx, y=posy)) +
+  geom_line(color = "white") +
+  annotation_custom(background, -Inf, Inf, -Inf, Inf) +
+  geom_text(data = dat_label_change, aes(label=value), show.legend = FALSE, size=8) +
+  geom_text(data = dat_label_total, aes(label=value), show.legend = FALSE, size=4) +
+  theme_void()
+
+```
+
+```{r, fig.width=10}
+
+# jetzt mit echten Zahlen
+
+background <- get_png("dashboard-app/data_background.png")
+
+dat <- data.frame(
+  value = c(20, 30, 30, 40),
+  posx = c(0, 10),
+  posy = c(0, 10)
+)
+
+dat_label_change <- data.frame(
+  value = c(paste0("+",current_data_out$new_cases), 
+            paste0("+",current_data_out$new_deaths), 
+            paste0("+",current_data_out$new_closed), 
+            paste0(current_data_out$incidence)),
+  posx = c(0.7, 3.5, 6.3, 9.2),
+  posy = c(3.8, 3.8, 3.8, 3.8)
+)
+
+dat_label_total <- data.frame(
+  value = c(paste("Gesamt:",current_data_out$total_cases),
+            paste("Gesamt:",current_data_out$deaths),
+            paste("Gesamt:",current_data_out$closed_cases),
+            paste("Quelle RKI, Daten abgerufen am:", format(current_data_out$call_date, "%d.%m.%Y um %H:%M Uhr"))),
+  posx = c(0.7, 3.5, 6.3, 3),
+  posy = c(2.2, 2.2, 2.2, 0.5)
+)
+
+ggplot(dat, aes(x=posx, y=posy)) +
+  geom_line(color = "white") +
+  annotation_custom(background, -Inf, Inf, -Inf, Inf) +
+  geom_text(data = dat_label_change, aes(label=value), show.legend = FALSE, size=10) +
+  geom_text(data = dat_label_total, aes(label=value), show.legend = FALSE, size=6) +
+  theme_void() +
+  theme(aspect.ratio = 10/30)
 ```
 

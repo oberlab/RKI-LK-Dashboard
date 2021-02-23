@@ -10,6 +10,7 @@ library(maptools)
 library(scales)
 library(rjson)
 library(tidyverse)
+library(plyr)
 
 initialize_webshot <- function(){
   if(!webshot::is_phantomjs_installed())
@@ -51,8 +52,17 @@ extract_current_data <- function(ags="09182"){
   current_data<- as.data.frame(data$data[[ags]])
   current_data_meta <- as.data.frame(data$meta)
   
+  current_data<- as.data.frame(data$data[[ags]])
+  current_data_meta <- as.data.frame(data$meta)
+  
+  call_date <- as.POSIXct(current_data_meta$lastCheckedForUpdate, format("%Y-%m-%dT%H:%M:%S"), tz ="UTC")
+  call_date <- call_date + 1*60*60 #um die Stunde Zeitverschiebung einzubeziehen
+  
+  data_date <- as.POSIXct(current_data_meta$lastUpdate, format("%Y-%m-%dT%H:%M:%S"), tz ="UTC")
+  
   current_data_out <- data.frame(
-    "date" = as.Date(current_data_meta$lastCheckedForUpdate, format = "%Y-%m-%d"),
+    "data_date" = data_date,
+    "call_date" = call_date,
     "total_cases" = as.integer(current_data$cases),
     "active_cases" = as.integer(current_data$cases - current_data$recovered - current_data$deaths),
     "closed_cases" = as.integer(current_data$recovered),
@@ -69,6 +79,19 @@ extract_current_data <- function(ags="09182"){
 extract_short_plot_data <- function(ags="09182"){
   raw_incidence14 <- fromJSON(file = paste0("https://api.corona-zahlen.org/districts/", ags, "/history/incidence/14"), method='C')
   raw_cases14 <- fromJSON(file = paste0("https://api.corona-zahlen.org/districts/", ags, "/history/cases/14"), method='C')
+  
+  #Abrufzeiten ziehen
+  raw_incidence14_date <- raw_incidence14$meta$lastUpdate
+  raw_cases14_date <- raw_cases14$meta$lastUpdate
+  
+  if(raw_cases14_date == raw_incidence14_date){
+    data_date <- as.POSIXct(raw_incidence14_date, format("%Y-%m-%dT%H:%M:%S"), tz ="UTC")
+  } else {
+    data_date <- NA
+  }
+  
+  call_date <- as.POSIXct(raw_cases14$meta$lastCheckedForUpdate, format("%Y-%m-%dT%H:%M:%S"), tz ="UTC")
+  call_date <- call_date + 1*60*60 #um die Stunde Zeitverschiebung einzubeziehen
   
   #Aus dem RKI-Datensatz die richtigen Daten herauslesen
   incidence14 <- raw_incidence14$data[[ags]]$history
@@ -87,7 +110,14 @@ extract_short_plot_data <- function(ags="09182"){
   
   short_plot_dataframe <- merge(incidence14, cases14, by='Datum')
   short_plot_dataframe <- melt(short_plot_dataframe, id.vars=c("Datum"), na.rm = TRUE)
-  return(short_plot_dataframe)
+  
+  output <- list(
+    "data" = short_plot_dataframe,
+    "data_date" = data_date,
+    "call_date" = call_date
+    
+  )
+  return(output)
 }
   
 

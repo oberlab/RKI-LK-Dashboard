@@ -34,7 +34,7 @@ create_landkreis_plot <- function(location_data, maxFaelleThreshold, use_oberlab
 		einfache_lkr_ggplot_map <- ggplot(einfache_lkr_map) + 
 			geom_polygon(aes(x = long, y = lat, group = group, fill=quoten), colour = "white") +
 			labs(title = "Aktive COVID-19 Fälle nach Gemeinden des Landkreis Miesbach",
-					 subtitle = paste0("Lizenz: CC-BY-SA, FabLab Oberland e.V., ","Datenstand: ", format(as.Date(max(location_data$Datum)), "%d.%m.%Y"), ", ",format(Sys.time(),"%H:00"))) +
+					 subtitle = paste0("Lizenz: CC-BY-SA, FabLab Oberland e.V., ","\nDatenstand: ", format(as.Date(max(location_data$Datum)), "%d.%m.%Y"), ", ",format(Sys.time(),"%H:00"))) +
 			theme_void()  +
 			theme(legend.position = c(0.5,0),
 						legend.direction = "horizontal",
@@ -129,13 +129,7 @@ create_summary_plot <- function(data, num_labels_per_set, logo, logo2, show_fill
 	return(plot)
 }
 
-create_short_plot_plz <- function(data, ort_info, logo, logo2, x_adjust = 7, y_adjust = 0){
-  einzelne_gemeinde <- data[data$PLZ==ort_info$PLZ,]
-  create_short_plot(einzelne_gemeinde,logo, logo2, x_adjust, y_adjust, ort_info)
-}
-
-
-create_short_plot <- function(data, logo, logo2, x_adjust = 7, y_adjust = 0){
+create_short_plot <- function(data, logo, x_adjust = 7, y_adjust = 0, size_adjust = 1, label_adjust = 5, data_date, call_date){
 	max_date <- max(data$Datum)
 	min_date <- min(data$Datum)
 	
@@ -146,17 +140,10 @@ create_short_plot <- function(data, logo, logo2, x_adjust = 7, y_adjust = 0){
 		ylab("") +
 		xlab("") +
 		labs(title = paste0("Kurzfristige Entwicklung Neuinfektionen pro Tag und 7-Tage-Inzidenz COVID-19 ",ort),
-				 caption = paste0("Lizenz: CC-BY-SA, FabLab Oberland e.V., ","Datenstand: ", format(max_date, "%d.%m.%Y"), ", ",format(Sys.time(),"%H:00"))) +
+				 caption = paste0("Lizenz: CC-BY-SA, FabLab Oberland e.V., Daten: RKI ","\nDatenstand: ", format(data_date, "%d.%m.%Y %H:%M Uhr"), ", abgerufen: ", format(call_date, "%d.%m.%Y %H:%M Uhr"))) +
 		theme_minimal() +
-		geom_label(aes(label=value), show.legend = FALSE, nudge_y = 10) +
-		annotation_custom(logo, xmin=min_date+x_adjust, xmax=min_date+2+x_adjust, ymin=20+y_adjust, ymax=60+y_adjust) +
-		annotation_custom(logo2, xmin=min_date+2+x_adjust, xmax=min_date+4+x_adjust, ymin=20+y_adjust, ymax=60+y_adjust) +
-		annotation_custom(grob = textGrob("Erstellt mit \u2661\n in Zusammenarbeit von",
-																			gp=gpar(fontfamily = "Roboto Mono", fontsize = 12*0.9)),
-											xmin=min_date+1+x_adjust,
-											xmax=min_date+2.5+x_adjust,
-											ymin=60+y_adjust, ymax=85+y_adjust) +
-		
+		geom_label(aes(label=value), show.legend = FALSE, nudge_y = label_adjust) +
+		annotation_custom(logo, xmin=min_date+x_adjust, xmax=min_date+2+x_adjust+size_adjust, ymin=20+y_adjust, ymax=60+y_adjust) +
 		coord_cartesian(clip = "off") +
 		scale_x_date(date_labels = "%d.%m", breaks = "day") +
 		scale_color_manual(values = oberlab_colors) +
@@ -164,4 +151,41 @@ create_short_plot <- function(data, logo, logo2, x_adjust = 7, y_adjust = 0){
 		#scale_y_continuous(limits=c(0, 200), expand = c(0,0)) +
 		expand_limits(y=c(0, 0))+
 		theme(legend.margin = margin(t=-1), plot.margin = unit(c(2,1,0.5,0) , "lines"))
+	
+}
+
+
+create_daily_summary <- function(current_data, background){
+  dat <- data.frame(
+    value = c(20, 30, 30, 40),
+    posx = c(0, 10),
+    posy = c(0, 10)
+  )
+
+  dat_label_change <- data.frame(
+    value = c(paste0("+",current_data$new_cases), 
+              paste0("+",current_data$new_deaths), 
+              paste0("+",current_data$new_closed), 
+              paste0(current_data$incidence)),
+    posx = c(0.7, 3.5, 6.3, 9.2),
+    posy = c(3.8, 3.8, 3.8, 3.8)
+  )
+
+  dat_label_total <- data.frame(
+    value = c(paste("Gesamt:",current_data$total_cases),
+              paste("Gesamt:",current_data$deaths),
+              paste("Gesamt:",current_data$closed_cases),
+              paste("Quelle RKI, Daten abgerufen am:", format(current_data$call_date, "%d.%m.%Y um %H:%M Uhr"))),
+    posx = c(0.7, 3.5, 6.3, 3),
+    posy = c(2.2, 2.2, 2.2, 0.5)
+  )
+
+
+  ggplot(dat, aes(x=posx, y=posy)) +
+    geom_line(color = "white") +
+    annotation_custom(background, -Inf, Inf, -Inf, Inf) +
+    geom_text(data = dat_label_change, aes(label=value), show.legend = FALSE, size=10) +
+    geom_text(data = dat_label_total, aes(label=value), show.legend = FALSE, size=6) +
+    theme_void()+
+    theme(aspect.ratio = 10/30)
 }
