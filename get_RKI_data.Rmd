@@ -1,0 +1,60 @@
+---
+title: "Get RKI data"
+output: html_notebook
+---
+
+## Zugriff auf die relevanten Daten
+
+```{r}
+# Es wird mittels API auf die Daten zugegriffen
+# https://api.corona-zahlen.org/docs/
+
+library(rjson)
+library(plyr)
+
+ags <- "09182" #Festlegen des allgemeinen Gemeindeschlüssels, 09182 ist Miesbach
+data <- fromJSON(file = paste0("https://api.corona-zahlen.org/districts/", ags))
+
+current_data<- as.data.frame(data$data[[ags]])
+current_data_meta <- as.data.frame(data$meta)
+
+
+current_data_out <- data.frame(
+		"date" = as.Date(current_data_meta$lastCheckedForUpdate, format = "%Y-%m-%d"),
+		"total_cases" = as.integer(current_data$cases),
+		"active_cases" = as.integer(current_data$cases - current_data$recovered - current_data$deaths),
+		"closed_cases" = as.integer(current_data$recovered),
+		"deaths" = as.integer(current_data$deaths),
+		"new_cases" = as.integer(current_data$delta.cases),
+		"new_deaths" = as.integer(current_data$delta.deaths),
+		"new_closed" = as.integer(current_data$delta.recovered),
+		"incidence" = as.integer(round(current_data$weekIncidence))
+		)
+```
+
+
+```{r}
+## Daten für den Shortplot
+raw_incidence14 <- fromJSON(file = paste0("https://api.corona-zahlen.org/districts/", ags, "/history/incidence/14"), method='C')
+raw_cases14 <- fromJSON(file = paste0("https://api.corona-zahlen.org/districts/", ags, "/history/cases/14"), method='C')
+
+#Aus dem RKI-Datensatz die richtigen Daten herauslesen
+incidence14 <- raw_incidence14$data[[ags]]$history
+incidence14 <- ldply(incidence14, data.frame)
+incidence14$weekIncidence <- round(incidence14$weekIncidence,0)
+incidence14$date <- as.Date(incidence14$date,"%Y-%m-%d")
+
+
+cases14<- raw_cases14$data[[ags]]$history
+cases14 <- ldply(cases14, data.frame)
+cases14$date <- as.Date(cases14$date,"%Y-%m-%d")
+
+# Daten so herrichten, dass sie mit unseren üblichen Plots funktionieren
+colnames(incidence14) <- c('7-Tage-Inzidenz','Datum')
+colnames(cases14) <- c('Neuinfektionen','Datum')
+
+short_plot_dataframe <- merge(incidence14, cases14, by='Datum')
+short_plot_dataframe <- melt(short_plot_dataframe, id.vars=c("Datum"), na.rm = TRUE)
+
+```
+

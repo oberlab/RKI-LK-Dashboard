@@ -1,0 +1,30 @@
+.atlwdg-trigger.atlwdg-RIGHT {
+    left: 100%;
+    top: 40%;
+    -webkit-transform: rotate(90deg);
+    -webkit-transform-origin: top left;
+    -moz-transform: rotate(90deg);
+    -moz-transform-origin: top left;
+    -ms-transform: rotate(90deg);
+    -ms-transform-origin: top left;
+    transform: rotate(90deg);
+    transform-origin: top left;
+}
+
+.atlwdg-trigger {
+    position: fixed;
+    background: #205081;
+    padding: 5px;
+    border: 2px solid white;
+    border-top: none;
+    font-weight: bold;
+    color: white !important;
+    display: block;
+    white-space: nowrap;
+    text-decoration: none !important;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    -webkit-box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    border-radius: 0 0 5px 5px;
+}
