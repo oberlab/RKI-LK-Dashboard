@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install libcurl4-openssl-dev -y &&\
   mkdir -p /var/lib/shiny-server/bookmarks/shiny
 
 # Download and install library
-RUN R -e "install.packages(c('shinydashboard', 'shinyjs', 'png', 'webshot', 'rjson', 'plyr', 'dplyr', 'ggplot2', 'reshape'))"
+RUN R -e "install.packages(c('shinydashboard', 'shinyjs', 'png', 'rjson', 'plyr', 'dplyr', 'ggplot2', 'reshape'))"
 
 ## update system libraries
 RUN apt-get update && \
