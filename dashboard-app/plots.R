@@ -103,8 +103,9 @@ create_daily_summary <- function(current_data, background){
     value = c(paste("Gesamt:",current_data$total_cases),
               paste("Gesamt:",current_data$deaths),
               paste("Gesamt:",current_data$closed_cases),
-              paste("Quelle RKI, Daten abgerufen am:", format(current_data$call_date, "%d.%m.%Y um %H:%M Uhr"))),
-    posx = c(0.7, 3.5, 6.3, 3),
+              paste("Quelle RKI, ","Datenstand: ", format(current_data$data_date, "%d.%m.%Y %H:%M Uhr") ,", Daten abgerufen am:", format(current_data$call_date, "%d.%m.%Y um %H:%M Uhr"))),
+
+    posx = c(0.7, 3.5, 6.3, 4.2),
     posy = c(2.2, 2.2, 2.2, 0.5)
   )
 
@@ -113,7 +114,7 @@ create_daily_summary <- function(current_data, background){
     geom_line(color = "white") +
     annotation_custom(background, -Inf, Inf, -Inf, Inf) +
     geom_text(data = dat_label_change, aes(label=value), show.legend = FALSE, size=10) +
-    geom_text(data = dat_label_total, aes(label=value), show.legend = FALSE, size=6) +
+    geom_text(data = dat_label_total, aes(label=value), show.legend = FALSE, size=5) +
     theme_void()+
     theme(aspect.ratio = 10/30)
 }
