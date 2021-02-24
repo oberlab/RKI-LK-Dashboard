@@ -1,6 +1,8 @@
 ---
 title: "Get RKI data"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 ## Zugriff auf die relevanten Daten
@@ -80,6 +82,10 @@ short_plot_dataframe <- melt(short_plot_dataframe, id.vars=c("Datum"), na.rm = T
 
 ```{r}
 # <- png::readPNG("dashboard-app/data_background.png")
+get_png <- function(filename) {
+  grid::rasterGrob(png::readPNG(filename), interpolate = TRUE)
+}
+
 background <- get_png("dashboard-app/data_background.png")
 
 dat <- data.frame(
