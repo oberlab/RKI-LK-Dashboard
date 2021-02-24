@@ -14,3 +14,6 @@ So dieser  Schritt erfolgreich abgeschlossen wurde kann die Anwendung dann ausge
 
 `docker run --rm -p 3838:3838 oberlab/rki-dashboard`
 
+Dann kann man die Anwendung lokal aufrufen unter
+
+`http://localhost:3838/`
