@@ -52,6 +52,8 @@ shinyServer(function(input, output) {
     output$new_numbers_table <- renderTable({
          data <- get_current_data()
          colnames(data) <- c("Datenstand", "Letzter Abruf", "Fälle Gesamt", "Akive Fälle", "Gesundete", "Todesfälle", "Neuinfizierte", "Neue Todesfälle", "Neue Genesene", "Inzidenz")
+         data[,1] <- format(data[,1], "%d.%m.%Y")
+         data[,2] <- format(data[,2], "%d.%m.%Y")
          return(data)   
     })
     

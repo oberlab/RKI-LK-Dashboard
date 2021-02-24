@@ -1,5 +1,4 @@
 library(shiny)
-library(colourpicker)
 source("fun.R") # includes all functions/libraries
 
 shinyUI(fluidPage(

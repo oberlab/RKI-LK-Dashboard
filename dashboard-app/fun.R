@@ -1,16 +1,5 @@
 # This file contains all the functions and libraries needed for the COVID-19 calculator
-library(DT)
-library(readxl)
-library(reshape2)
-library(ggrepel)
-library(mapview)
-library(grid)
-library(gpclib)
-library(maptools)
-library(scales)
-library(rjson)
-library(tidyverse)
-library(plyr)
+
 
 initialize_webshot <- function(){
   if(!webshot::is_phantomjs_installed())
