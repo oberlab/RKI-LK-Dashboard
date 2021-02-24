@@ -8,8 +8,9 @@ initialize_webshot <- function(){
 
 jira_issuecollector_code <- "
 shinyjs.init = function(){
+// Requires jQuery!
 jQuery.ajax({
-    url: \"https://jira.oberlab.de/s/85c54421d2c746860d226906598dbdc4-T/gwty9g/812003/6411e0087192541a09d88223fb51a6a0/4.0.3/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs.js?locale=de-DE&collectorId=8eb41bc9\",
+    url: \"https://jira.oberlab.de/s/85c54421d2c746860d226906598dbdc4-T/gwty9g/812003/6411e0087192541a09d88223fb51a6a0/4.0.3/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector-embededjs.js?locale=de-DE&collectorId=4820f6d3\",
     type: \"get\",
     cache: true,
     dataType: \"script\"

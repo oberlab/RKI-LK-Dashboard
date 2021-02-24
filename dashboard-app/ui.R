@@ -23,7 +23,7 @@ shinyUI(fluidPage(
                     min = 0, max = 5,value = 1, step = 0.5),
                     sliderInput("short_label_pos", "Position der Label",
                                min = -20, max = 20,value = 0, step = 1))), 
-      a("Feedback geben", href="https://jira.oberlab.de/rest/collectors/1.0/template/form/8eb41bc9", target="_self", class="atlwdg-trigger atlwdg-RIGHT")
+      a("Feedback geben", href="https://jira.oberlab.de/rest/collectors/1.0/template/form/4820f6d3", target="_self", class="atlwdg-trigger atlwdg-RIGHT")
       
   
 )
