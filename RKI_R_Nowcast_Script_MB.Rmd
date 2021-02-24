@@ -120,8 +120,6 @@ cases_complete$R7_Wert[is.infinite(cases_complete$R7_Wert)] <- 0
 
 
 # Vergleiche mit R4-Werten 
-cases_complete %>% select(Datum, R_Wert, R7_Wert) %>% tail()
-
 cases2021<- cases_complete[cases_complete$date>="2021-01-01",]
 
 ######################
@@ -170,6 +168,9 @@ ggplot(data=cases_complete, aes(x=date, y = R, color="R")) +
   theme(legend.position="bottom")
 
 ```
+
+
+
 
 Und hier kommt dann noch eine aktualisierte Version des Dashboards mit dem R-Wert
 
