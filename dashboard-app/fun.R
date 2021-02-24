@@ -1,11 +1,6 @@
 # This file contains all the functions and libraries needed for the COVID-19 calculator
 
 
-initialize_webshot <- function(){
-  if(!webshot::is_phantomjs_installed())
-    webshot::install_phantomjs()
-}
-
 jira_issuecollector_code <- "
 shinyjs.init = function(){
 // Requires jQuery!

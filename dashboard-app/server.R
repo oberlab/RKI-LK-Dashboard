@@ -21,8 +21,7 @@ shinyServer(function(input, output) {
     landkreis_logo <- get_png("landkreis_logo.png")
     logos <- get_png("logos.png")
     background <- get_png("data_background.png")
-    
-    initialize_webshot()
+
     
     
 ###########################################
