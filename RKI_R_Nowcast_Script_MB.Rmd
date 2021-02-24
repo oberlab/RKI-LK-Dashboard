@@ -1,6 +1,8 @@
 ---
 title: "Berechnung des R-Werts für den Landkreis Miesbach"
-output: html_notebook
+output:
+  pdf_document: default
+  html_notebook: default
 ---
 
 In diesem Skript wird der R-Wert für den Landkreis Miesbach berechnet
@@ -13,6 +15,8 @@ Das Skript basiert auf diesem R-Skript: https://github.com/jrennstich/Nowcast_RK
 
 library(rjson)
 library(plyr)
+library(dplyr)
+library(ggplot2)
 
 ags <- "09182" #Festlegen des allgemeinen Gemeindeschlüssels, 09182 ist Miesbach
 
