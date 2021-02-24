@@ -1,0 +1,253 @@
+---
+title: "Berechnung des R-Werts für den Landkreis Miesbach"
+output: html_notebook
+---
+
+In diesem Skript wird der R-Wert für den Landkreis Miesbach berechnet
+Das Skript basiert auf diesem R-Skript: https://github.com/jrennstich/Nowcast_RKI/blob/master/RKI_R_Nowcast_Script_DE.R
+
+
+```{r}
+# Es wird mittels API auf die Daten zugegriffen
+# https://api.corona-zahlen.org/docs/
+
+library(rjson)
+library(plyr)
+
+ags <- "09182" #Festlegen des allgemeinen Gemeindeschlüssels, 09182 ist Miesbach
+
+raw_incidence14 <- fromJSON(file = paste0("https://api.corona-zahlen.org/districts/", ags, "/history/incidence/14"), method='C')
+raw_cases14 <- fromJSON(file = paste0("https://api.corona-zahlen.org/districts/", ags, "/history/cases/14"), method='C')
+raw_cases_complete <- fromJSON(file = paste0("https://api.corona-zahlen.org/districts/", ags, "/history/cases"), method='C')
+
+raw_incidence14_date <- raw_incidence14$meta$lastUpdate
+raw_cases14_date <- raw_cases14$meta$lastUpdate
+raw_cases_complete_date <- raw_cases_complete$meta$lastUpdate
+  
+  
+if(raw_cases14_date == raw_incidence14_date && raw_cases14_date == raw_cases_complete_date){
+  daten_datum <- as.POSIXct(raw_incidence14_date, format("%Y-%m-%dT%H:%M:%S"), tz ="UTC")
+} else {
+  daten_datum <- NA
+}
+
+call_date <- as.POSIXct(raw_cases14$meta$lastCheckedForUpdate, format("%Y-%m-%dT%H:%M:%S"), tz ="UTC")
+  
+
+
+#Aus dem RKI-Datensatz die richtigen Daten herauslesen
+incidence14 <- raw_incidence14$data[[ags]]$history
+incidence14 <- ldply(incidence14, data.frame)
+incidence14$weekIncidence <- round(incidence14$weekIncidence,0)
+incidence14$date <- as.Date(incidence14$date,"%Y-%m-%d")
+
+
+cases14<- raw_cases14$data[[ags]]$history
+cases14 <- ldply(cases14, data.frame)
+cases14$date <- as.Date(cases14$date,"%Y-%m-%d")
+
+cases_complete <- raw_cases_complete$data[[ags]]$history
+cases_complete <- ldply(cases_complete, data.frame)
+cases_complete$date <- as.Date(cases_complete$date,"%Y-%m-%d")
+
+
+# Berechnung des R-Werts analog dem Original-Skript
+#
+# R-Wert Berechnung bei einem seriellen Intervall von 4 Tagen 
+R_Wert <- rep(NA, nrow(cases_complete)) 
+for (t in 8:nrow(cases_complete)) { 
+  R_Wert[t] <- sum(cases_complete$cases[t-0:3]) / sum(cases_complete$cases[t-4:7])
+} 
+cases_complete <- cases_complete %>% dplyr::mutate(R_Wert = round(R_Wert, digits = 2))
+# Teilungen durch 0 von Inf (x / 0) und NaN (0 / 0) durch 0 ersetzen
+cases_complete$R_Wert[is.nan(cases_complete$R_Wert)] <- 0
+cases_complete$R_Wert[is.infinite(cases_complete$R_Wert)] <- 0
+
+```
+
+Jetzt wird dann noch der Plot mit den R-Werten gebaut.
+
+Zuerst der R-Wert (4-Tage) seit 1.1.2021
+
+```{r}
+cases2021<- cases_complete[cases_complete$date>="2021-01-01",]
+
+
+####################
+#PLOT DES R-WERTES #
+####################
+
+# Plot mit deutschen Bezeichnungen
+ggplot(data=cases2021, aes(x=date)) +
+  #geom_ribbon(aes(ymin = lb_R, ymax = ub_R), stat="identity", fill="steelblue")+
+  geom_line(aes(y = R_Wert), stat="identity", fill="steelblue")+
+  theme_minimal() + 
+  labs(title = "", x = "", y = "Reproduktionszahl R") + 
+  scale_x_date(date_breaks = "2 days", labels = 
+                 scales::date_format("%d.%m.")) + 
+  scale_y_continuous(labels = function(x) format(x, big.mark = ",", decimal.mark = ".", scientific = FALSE)) + 
+  theme(axis.text.x = element_text(angle=90, vjust=0))
+```
+
+Jetzt der R-Wert (4 Tage) seit März 2020
+
+```{r}
+# Plot mit deutschen Bezeichnungen
+ggplot(data=cases_complete, aes(x=date)) +
+  #geom_ribbon(aes(ymin = lb_R, ymax = ub_R), stat="identity", fill="steelblue")+
+  geom_line(aes(y = R_Wert), stat="identity", fill="steelblue")+
+  theme_minimal() + 
+  labs(title = "", x = "", y = "Reproduktionszahl R") + 
+  scale_x_date(date_breaks = "2 days", labels = 
+                 scales::date_format("%d.%m.")) + 
+  scale_y_continuous(labels = function(x) format(x, big.mark = ",", decimal.mark = ".", scientific = FALSE)) + 
+  theme(axis.text.x = element_text(angle=90, vjust=0))
+```
+Und jetzt noch die R7-Werte (= 7 Tage) für 2021 und Gesamt
+
+```{r}
+
+# Berechnung des 7-Tage R-Wertes
+R7_Wert <- rep(NA, nrow(cases_complete)) 
+for (t in 11:nrow(cases_complete)) { 
+  R7_Wert[t-1] <- sum(cases_complete$cases[t-0:6]) / sum(cases_complete$cases[t-4:10]) 
+}
+cases_complete <- cases_complete %>% dplyr::mutate(R7_Wert = round(R7_Wert, digits = 2)) 
+# Teilungen durch 0 von Inf (x / 0) und NaN (0 / 0) durch 0 ersetzen
+cases_complete$R7_Wert[is.nan(cases_complete$R7_Wert)] <- 0
+cases_complete$R7_Wert[is.infinite(cases_complete$R7_Wert)] <- 0
+
+
+
+# Vergleiche mit R4-Werten 
+cases_complete %>% select(Datum, R_Wert, R7_Wert) %>% tail()
+
+cases2021<- cases_complete[cases_complete$date>="2021-01-01",]
+
+######################
+# PLOT 7-Tage R-Wert #
+######################
+
+# Plot mit deutschen Bezeichnungen
+ggplot(data=cases2021, aes(x=date, y = R, color="R")) + 
+  #geom_ribbon(aes(ymin = lb_R, ymax = ub_R, color=NULL), fill="steelblue") + 
+  #geom_ribbon(aes(ymin = lb_R_7Tage, ymax = ub_R_7Tage, color=NULL), fill="orange") + 
+  geom_line(aes(y = R_Wert, color="R_Wert")) + geom_line(aes(y = R7_Wert, color="R7_Wert"), size = 1) +
+  theme_minimal() + 
+  labs(title = "", 
+       x = "", 
+       y = "Reproduktionszahl R") + 
+  scale_x_date(date_breaks = "2 days", labels = 
+                 scales::date_format("%d.%m.")) + 
+  scale_y_continuous(labels = function(x) format(x, big.mark = ".", decimal.mark = ",", scientific = FALSE)) + 
+  scale_color_manual(name="Methode:", values=c("darkblue","orangered")) +
+  guides(color=guide_legend(override.aes=list(fill=NA))) + 
+  theme(axis.text.x = element_text(angle=90, vjust=0)) + 
+  theme(legend.position="bottom")
+
+```
+```{r}
+
+######################
+# PLOT 7-Tage R-Wert #
+######################
+
+# Plot mit deutschen Bezeichnungen
+ggplot(data=cases_complete, aes(x=date, y = R, color="R")) + 
+  #geom_ribbon(aes(ymin = lb_R, ymax = ub_R, color=NULL), fill="steelblue") + 
+  #geom_ribbon(aes(ymin = lb_R_7Tage, ymax = ub_R_7Tage, color=NULL), fill="orange") + 
+  geom_line(aes(y = R_Wert, color="R_Wert")) + geom_line(aes(y = R7_Wert, color="R7_Wert"), size = 1) +
+  theme_minimal() + 
+  labs(title = "", 
+       x = "", 
+       y = "Reproduktionszahl R") + 
+  scale_x_date(date_breaks = "2 days", labels = 
+                 scales::date_format("%d.%m.")) + 
+  scale_y_continuous(labels = function(x) format(x, big.mark = ".", decimal.mark = ",", scientific = FALSE)) + 
+  scale_color_manual(name="Methode:", values=c("darkblue","orangered")) +
+  guides(color=guide_legend(override.aes=list(fill=NA))) + 
+  theme(axis.text.x = element_text(angle=90, vjust=0)) + 
+  theme(legend.position="bottom")
+
+```
+
+Und hier kommt dann noch eine aktualisierte Version des Dashboards mit dem R-Wert
+
+```{r}
+data_dashboard<- fromJSON(file = paste0("https://api.corona-zahlen.org/districts/", ags))
+
+current_data<- as.data.frame(data_dashboard
+                            $data[[ags]])
+current_data_meta <- as.data.frame(data_dashboard
+                                  $meta)
+
+call_date <- as.POSIXct(current_data_meta$lastCheckedForUpdate, format("%Y-%m-%dT%H:%M:%S"), tz ="UTC")
+call_date <- call_date + 1*60*60 #um die Stunde Zeitverschiebung einzubeziehen
+
+data_date <- as.POSIXct(current_data_meta$lastUpdate, format("%Y-%m-%dT%H:%M:%S"), tz ="UTC")
+
+aktueller_r4_wert <- cases_complete[cases_complete$date == max(cases_complete$date),c('date','R_Wert')]
+aktueller_r7_wert <- cases_complete[cases_complete$date == max(cases_complete$date)-1,c('date','R7_Wert')]
+
+current_data_out <- data.frame(
+		"data_date" = data_date,
+		"call_date" = call_date,
+		"total_cases" = as.integer(current_data$cases),
+		"active_cases" = as.integer(current_data$cases - current_data$recovered - current_data$deaths),
+		"closed_cases" = as.integer(current_data$recovered),
+		"deaths" = as.integer(current_data$deaths),
+		"new_cases" = as.integer(current_data$delta.cases),
+		"new_deaths" = as.integer(current_data$delta.deaths),
+		"new_closed" = as.integer(current_data$delta.recovered),
+		"incidence" = as.integer(round(current_data$weekIncidence)),
+		"r4_value" = aktueller_r4_wert$R_Wert,
+		"r4_date"  = aktueller_r4_wert$date,
+		"r7_value" = aktueller_r7_wert$R7_Wert,
+		"r7_date"  = aktueller_r7_wert$date
+		)
+
+
+get_png <- function(filename) {
+  grid::rasterGrob(png::readPNG(filename), interpolate = TRUE)
+}
+
+background <- get_png("dashboard-app/data_background_rwert.png")
+
+dat <- data.frame(
+  value = c(20, 30, 30, 40),
+  posx = c(0, 10),
+  posy = c(0, 10)
+)
+
+dat_label_change <- data.frame(
+  value = c(paste0("+",current_data_out$new_cases), 
+            paste0("+",current_data_out$new_deaths), 
+            paste0("+",current_data_out$new_closed), 
+            paste0(current_data_out$incidence),
+            paste0(current_data_out$r4_value)
+            ),
+  posx = c(0.6, 2.5, 4.5, 6.6, 8.7),
+  posy = c(4.0, 4.0, 4.0, 4.0, 4.0)
+)
+
+dat_label_total <- data.frame(
+  value = c(paste("Gesamt:",current_data_out$total_cases),
+            paste("Gesamt:",current_data_out$deaths),
+            paste("Gesamt:",current_data_out$closed_cases),
+            paste("Stand: ",format(current_data_out$r4_date, "%d.%m.%Y")),
+            paste("Quelle RKI, Daten abgerufen am:", format(current_data_out$call_date, "%d.%m.%Y um %H:%M Uhr"))),
+  posx = c(0.5, 2.5, 4.6, 8.7, 1.8),
+  posy = c(2.7, 2.7, 2.7, 2.7, 1.6)
+)
+
+ggplot(dat, aes(x=posx, y=posy)) +
+  geom_line(color = "white") +
+  annotation_custom(background, -Inf, Inf, -Inf, Inf) +
+  geom_text(data = dat_label_change, aes(label=value), show.legend = FALSE, size=6) +
+  geom_text(data = dat_label_total, aes(label=value), show.legend = FALSE, size=3) +
+  theme_void() +
+  theme(aspect.ratio = 10/30)
+
+
+```
+
