@@ -1,0 +1,27 @@
+Package: RKI-LK-Dashboard
+Title: RKI-LK-Dashboard
+Version: 0.1.0.0000
+Authors@R:
+    c(person("Kutschera", "Alexander", role = c("cre", "aut"),
+             email = 'alex@oberlab.de'),
+      person("Bernhard Findeiss", role = "cph",
+             email = "bernhard@oberlab.de"))
+Description: Dashboard für Covid 19 auf Basis von Daten des RKI
+License: CC-BY-SA
+Imports:
+    config,
+    shiny,
+    rjson,
+    plyr,
+    dplyr,
+    ggplot2,
+    reshape
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.0
+URL: https://github.com/oberlab/RKI-LK-Dashboard
+BugReports: https://github.com/oberlab/RKI-LK-Dashboard/issues
+Suggests:
+    testthat,
+    pkgload,
+    rsconnect
