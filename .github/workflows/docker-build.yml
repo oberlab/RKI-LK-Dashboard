@@ -19,5 +19,5 @@ jobs:
         uses: flownative/action-docker-build@v1
         with:
           tag_ref: ${{ github.ref }}
-          image_name: oberlab/rki-dashboard
+          image_name: oberlab/rki-lk-dashboard/rki-dashboard
           registry_password: ${{ secrets.GITHUB_TOKEN }}
