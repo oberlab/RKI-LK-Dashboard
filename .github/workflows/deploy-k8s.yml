@@ -1,8 +1,8 @@
-name: Deploy to cluster
+name: deploy:k8s
 on:
   workflow_run:
     workflows:
-      - Build and release Docker images
+      - build
     types:
       - completed
 
@@ -15,6 +15,7 @@ jobs:
     - name: 'Deploy'
       uses: 'deliverybot/helm@v1'
       with:
+        helm: helm3
         release: app
         namespace: rki-lk-dashboard
         chart: helm/app
