@@ -1,0 +1,10 @@
+namespace: rki-lk-dashboard
+app:
+  image: docker.pkg.github.com/oberlab/rki-lk-dashboard/rki-dashboard
+  version: development
+  container_port: 3838
+  service_port: 80
+  replicas: 1
+  env: []
+  secrets: []
+
