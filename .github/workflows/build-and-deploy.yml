@@ -10,7 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-
       - uses: actions/checkout@v2
         with:
           fetch-depth: 1
@@ -21,6 +20,13 @@ jobs:
           tag_ref: ${{ github.ref }}
           image_name: oberlab/rki-lk-dashboard/rki-dashboard
           registry_password: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
 
       - name: Deploy to cluster
         uses: deliverybot/helm@v1
