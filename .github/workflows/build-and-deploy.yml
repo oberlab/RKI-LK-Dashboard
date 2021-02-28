@@ -1,4 +1,4 @@
-name: build
+name: Build image & deploy to k8s
 on:
   push:
     branches-ignore:
@@ -21,3 +21,17 @@ jobs:
           tag_ref: ${{ github.ref }}
           image_name: oberlab/rki-lk-dashboard/rki-dashboard
           registry_password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy to cluster
+        uses: deliverybot/helm@v1
+        with:
+          helm: helm3
+          release: app
+          namespace: rki-lk-dashboard
+          chart: helm/app
+          token: ${{ github.token }}
+          values: |
+            app:
+              version: ${{ github.ref }}
+        env:
+          KUBECONFIG_FILE: ${{ secrets.KUBECONFIG }}
