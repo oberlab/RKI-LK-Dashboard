@@ -23,7 +23,7 @@ spec:
       http:
         paths:
           - backend:
-              serviceName: app
+              serviceName: app-service
               servicePort: 80
 
 ---
