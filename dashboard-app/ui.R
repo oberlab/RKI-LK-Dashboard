@@ -18,7 +18,7 @@ shinyUI(fluidPage(
                column(4, sliderInput("labelx_short", "X-Position der Logos",
                            min = 0, max = 10, value = 0, step = 0.5), 
                sliderInput("labely_short", "Y-Position der Logos",
-                           min = 0, max = 200,value = 0, step = 5)),
+                           min = 0, max = 200,value = 20, step = 5)),
                column(4 ,sliderInput("logo_size_short", "Größe der Logos",
                     min = 0, max = 5,value = 1, step = 0.5),
                     sliderInput("short_label_pos", "Position der Label",

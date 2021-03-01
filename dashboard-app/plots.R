@@ -71,7 +71,7 @@ create_short_plot <- function(data, logo, x_adjust = 7, y_adjust = 0, size_adjus
 				 caption = paste0("Lizenz: CC-BY-SA, FabLab Oberland e.V., Daten: RKI ","\nDatenstand: ", format(data_date, "%d.%m.%Y %H:%M Uhr"), ", abgerufen: ", format(call_date, "%d.%m.%Y %H:%M Uhr"))) +
 		theme_minimal() +
 		geom_label(aes(label=value), show.legend = FALSE, nudge_y = label_adjust) +
-		annotation_custom(logo, xmin=min_date+x_adjust, xmax=min_date+2+x_adjust+size_adjust, ymin=20+y_adjust, ymax=60+y_adjust) +
+		annotation_custom(logo, xmin=min_date+x_adjust, xmax=min_date+2+x_adjust+size_adjust, ymin=y_adjust, ymax=20+y_adjust) +
 		coord_cartesian(clip = "off") +
 		scale_x_date(date_labels = "%d.%m", breaks = "day") +
 		scale_color_manual(values = oberlab_colors) +
