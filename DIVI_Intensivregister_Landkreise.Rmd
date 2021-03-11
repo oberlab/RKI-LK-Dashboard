@@ -1,0 +1,109 @@
+---
+title: "DIVI Intensivregister Report"
+output: html_notebook
+---
+
+In diesem Skript wird die Belegung der Intensivbetten nach dem DIVI-Intensivregister ausgegeben
+Mehr Informationen finden sich hier: https://www.divi.de/register/tagesreport
+
+```{r}
+# Es wird mittels API auf die Daten zugegriffen
+
+library(rjson)
+library(plyr)
+library(dplyr)
+library(ggplot2)
+library(jsonlite)
+library(tidyverse)
+
+ags <- "09182" #Festlegen des allgemeinen Gemeindeschlüssels, 09182 ist Miesbach
+divi_tagesreport_csv_link <- paste0("https://www.divi.de/joomlatools-files/docman-files/divi-intensivregister-tagesreports-csv/DIVI-Intensivregister_2021-",format(Sys.Date(),"%m-%d"),"_12-15.csv")
+
+raw_tagesreport_csv <- read.csv(file=divi_tagesreport_csv_link)
+raw_tagesreport_csv$gemeindeschluessel <- paste0("0", raw_tagesreport_csv$gemeindeschluessel)
+tagesreport_aktueller_lkr <- raw_tagesreport_csv[raw_tagesreport_csv$gemeindeschluessel==ags,]
+
+raw_intensivregister <- rjson::fromJSON(file = "https://www.intensivregister.de/api/public/intensivregister", method='C')
+
+
+get_png <- function(filename) {
+  grid::rasterGrob(png::readPNG(filename), interpolate = TRUE)
+}
+
+background <- get_png("dashboard-app/data_background_divi.png")
+
+dat <- data.frame(
+  value = c(20, 30, 30, 40),
+  posx = c(0, 10),
+  posy = c(0, 10)
+)
+
+format(as.POSIXct(tagesreport_aktueller_lkr$daten_stand), "%d.%m.%Y um %H:%M Uhr")
+
+dat_label_total <- data.frame(
+  value = c(paste0(tagesreport_aktueller_lkr$betten_frei), 
+            paste0(tagesreport_aktueller_lkr$betten_belegt), 
+            paste0(tagesreport_aktueller_lkr$faelle_covid_aktuell), 
+            paste0(tagesreport_aktueller_lkr$faelle_covid_aktuell_beatmet)),
+  posx = c(0.7, 3.5, 6.4, 9.2),
+  posy = c(3.2, 3.2, 3.2, 3.2)
+)
+
+gemeindeschluessel_label <-  data.frame(
+  value = c(paste("Gemeindeschlüssel: ", tagesreport_aktueller_lkr$gemeindeschluessel)),
+  posx = c(1.6),
+  posy = c(7.0)
+)
+
+disclaimer_label <-  data.frame(
+  value = c(paste("DIVI Intensivregister, Datenstand: ", format(as.POSIXct(tagesreport_aktueller_lkr$daten_stand), "%d.%m.%Y um %H:%M Uhr"))),
+  posx = c(3.2),
+  posy = c(0.3)
+)
+
+ggplot(dat, aes(x=posx, y=posy)) +
+  geom_line(color = "white") +
+  annotation_custom(background, -Inf, Inf, -Inf, Inf) +
+  geom_text(data = gemeindeschluessel_label, aes(label=value), show.legend = FALSE, size=5) +
+  geom_text(data = dat_label_total, aes(label=value), show.legend = FALSE, size=6) +
+  geom_text(data = disclaimer_label, aes(label=value), show.legend = FALSE, size=4) +
+  theme_void() +
+  theme(aspect.ratio = 10/30)
+
+
+
+
+# intensivregister <- raw_intensivregister$data
+# intensivregister_flat <- purrr::flatten(intensivregister)
+# 
+# 
+# intensivregister_df <- intensivregister %>%
+# 
+#     # make json, then make list
+#     toJSON() %>%
+#     fromJSON() %>%
+# 
+#     # remove classification level
+#     purrr::flatten() %>%
+# 
+#     # turn nested lists into dataframes
+#     map_if(is_list, as_tibble) %>%
+# 
+#     # bind_cols needs tibbles to be in lists
+#     map_if(is_tibble, list) %>%
+# 
+#     # creates nested dataframe
+#     bind_cols()
+# 
+# 
+# 
+# intensivregister <- ldply(intensivregister, data.frame)
+# ldply(intensivregister, data.frame)
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
