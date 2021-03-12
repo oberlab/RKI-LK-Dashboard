@@ -1,7 +1,10 @@
 
 ## Extraction of the current data from the raw data file
 extract_current_data <- function(ags="09182"){
-  data <- fromJSON(file = paste0("https://api.corona-zahlen.org/districts/", ags))
+  
+  # Zahlen vom RKI 
+  
+  data <- rjson::fromJSON(file = paste0("https://api.corona-zahlen.org/districts/", ags))
   
   current_data<- as.data.frame(data$data[[ags]])
   current_data_meta <- as.data.frame(data$meta)
@@ -14,6 +17,19 @@ extract_current_data <- function(ags="09182"){
   
   data_date <- as.POSIXct(current_data_meta$lastUpdate, format("%Y-%m-%dT%H:%M:%S"), tz ="UTC")
   
+  # Zahlen vom DIVI-Intensivregister
+  raw_tagesreport_csv <- NA
+  divi_tagesreport_csv_link <- paste0("https://www.divi.de/joomlatools-files/docman-files/divi-intensivregister-tagesreports-csv/DIVI-Intensivregister_2021-",format(Sys.Date()-1,"%m-%d"),"_12-15.csv")
+  raw_tagesreport_csv <- read.csv(file=divi_tagesreport_csv_link)
+  
+  if (is.na(raw_tagesreport_csv)) {
+    divi_tagesreport_csv_link <- paste0("https://www.divi.de/joomlatools-files/docman-files/divi-intensivregister-tagesreports-csv/DIVI-Intensivregister_2021-",format(Sys.Date()-1,"%m-%d"),"_12-15.csv")
+    raw_tagesreport_csv <- read.csv(file=divi_tagesreport_csv_link)
+  }
+  
+  raw_tagesreport_csv$gemeindeschluessel <- paste0("0", raw_tagesreport_csv$gemeindeschluessel)
+  tagesreport_aktueller_lkr <- raw_tagesreport_csv[raw_tagesreport_csv$gemeindeschluessel==ags,]
+  
   current_data_out <- data.frame(
     "data_date" = data_date,
     "call_date" = call_date,
@@ -24,8 +40,14 @@ extract_current_data <- function(ags="09182"){
     "new_cases" = as.integer(current_data$delta.cases),
     "new_deaths" = as.integer(current_data$delta.deaths),
     "new_closed" = as.integer(current_data$delta.recovered),
-    "incidence" = as.integer(round(current_data$weekIncidence))
-  )
+    "incidence" = as.integer(round(current_data$weekIncidence)),
+    "betten_frei" = as.integer(tagesreport_aktueller_lkr$betten_frei),
+    "betten_belegt" = as.integer(tagesreport_aktueller_lkr$betten_belegt),
+    "faelle_covid_aktuell" = as.integer(tagesreport_aktueller_lkr$faelle_covid_aktuell),
+    "faelle_covid_aktuell_beatmet" = as.integer(tagesreport_aktueller_lkr$faelle_covid_aktuell_beatmet),
+    "divi_daten_stand" = tagesreport_aktueller_lkr$daten_stand,
+    "divi_ags" = tagesreport_aktueller_lkr$gemeindeschluessel)
+  
   
   return(current_data_out)
 }

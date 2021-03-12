@@ -83,7 +83,7 @@ create_short_plot <- function(data, logo, x_adjust = 7, y_adjust = 0, size_adjus
 }
 
 
-create_daily_summary <- function(current_data, background){
+create_daily_summary <- function(current_data, background, background_divi){
   dat <- data.frame(
     value = c(20, 30, 30, 40),
     posx = c(0, 10),
@@ -117,4 +117,48 @@ create_daily_summary <- function(current_data, background){
     geom_text(data = dat_label_total, aes(label=value), show.legend = FALSE, size=5) +
     theme_void()+
     theme(aspect.ratio = 10/30)
+  
+  
+  # ---- Jetzt der Plot für das DIVI Intensivregister ----
+  
+  dat_divi <- data.frame(
+    value = c(20, 30, 30, 40),
+    posx = c(0, 10),
+    posy = c(0, 10)
+  )
+  
+  
+  format(as.POSIXct(current_data$divi_daten_stand), "%d.%m.%Y um %H:%M Uhr")
+  
+  divi_label_total <- data.frame(
+    value = c(paste0(current_data$betten_frei), 
+              paste0(current_data$betten_belegt), 
+              paste0(current_data$faelle_covid_aktuell), 
+              paste0(current_data$faelle_covid_aktuell_beatmet)),
+    posx = c(0.7, 3.5, 6.4, 9.2),
+    posy = c(4.7, 4.7, 4.7, 4.7)
+  )
+  
+  divi_title_label <-  data.frame(
+    value = c(paste("Daten DIVI-Intensivregister für Gemeindeschlüssel ", current_data$divi_ags)),
+    posx = c(4.4),
+    posy = c(9.5)
+  )
+  
+  divi_disclaimer_label <-  data.frame(
+    value = c(paste("DIVI Intensivregister, Datenstand: ", format(as.POSIXct(current_data$divi_daten_stand), "%d.%m.%Y um %H:%M Uhr"))),
+    posx = c(2.6),
+    posy = c(1.7)
+  )
+  
+  ggplot(dat_divi, aes(x=posx, y=posy)) +
+    geom_line(color = "white") +
+    annotation_custom(background_divi, -Inf, Inf, -Inf, Inf) +
+    geom_text(data = divi_title_label, aes(label=value), show.legend = FALSE, size=5) +
+    geom_text(data = divi_label_total, aes(label=value), show.legend = FALSE, size=6) +
+    geom_text(data = divi_disclaimer_label, aes(label=value), show.legend = FALSE, size=4) +
+    theme_void() +
+    theme(aspect.ratio = 10/30)
+  
+  
 }

@@ -21,6 +21,7 @@ shinyServer(function(input, output) {
     landkreis_logo <- get_png("landkreis_logo.png")
     logos <- get_png("logos.png")
     background <- get_png("data_background.png")
+    background_divi <- get_png("data_background-divi.png")
 
     
     
@@ -72,7 +73,7 @@ shinyServer(function(input, output) {
     
     daily_summary <- reactive(({
         data <- get_current_data()
-        create_daily_summary(data, background)
+        create_daily_summary(data, background, background_divi)
     }))
    
 

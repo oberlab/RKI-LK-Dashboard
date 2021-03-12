@@ -30,7 +30,7 @@ get_png <- function(filename) {
   grid::rasterGrob(png::readPNG(filename), interpolate = TRUE)
 }
 
-background <- get_png("dashboard-app/data_background_divi.png")
+background_divi <- get_png("dashboard-app/background-divi.png")
 
 dat <- data.frame(
   value = c(20, 30, 30, 40),
@@ -40,39 +40,46 @@ dat <- data.frame(
 
 format(as.POSIXct(tagesreport_aktueller_lkr$daten_stand), "%d.%m.%Y um %H:%M Uhr")
 
-dat_label_total <- data.frame(
+divi_label_total <- data.frame(
   value = c(paste0(tagesreport_aktueller_lkr$betten_frei), 
             paste0(tagesreport_aktueller_lkr$betten_belegt), 
             paste0(tagesreport_aktueller_lkr$faelle_covid_aktuell), 
             paste0(tagesreport_aktueller_lkr$faelle_covid_aktuell_beatmet)),
   posx = c(0.7, 3.5, 6.4, 9.2),
-  posy = c(3.2, 3.2, 3.2, 3.2)
+  posy = c(4.7, 4.7, 4.7, 4.7)
 )
 
-gemeindeschluessel_label <-  data.frame(
-  value = c(paste("Gemeindeschlüssel: ", tagesreport_aktueller_lkr$gemeindeschluessel)),
-  posx = c(1.6),
-  posy = c(7.0)
+divi_title_label <-  data.frame(
+  value = c(paste("Daten DIVI-Intensivregister für Gemeindeschlüssel ", tagesreport_aktueller_lkr$gemeindeschluessel)),
+  posx = c(4.4),
+  posy = c(9.5)
 )
 
-disclaimer_label <-  data.frame(
+divi_disclaimer_label <-  data.frame(
   value = c(paste("DIVI Intensivregister, Datenstand: ", format(as.POSIXct(tagesreport_aktueller_lkr$daten_stand), "%d.%m.%Y um %H:%M Uhr"))),
-  posx = c(3.2),
-  posy = c(0.3)
+  posx = c(2.6),
+  posy = c(1.7)
 )
 
 ggplot(dat, aes(x=posx, y=posy)) +
   geom_line(color = "white") +
-  annotation_custom(background, -Inf, Inf, -Inf, Inf) +
-  geom_text(data = gemeindeschluessel_label, aes(label=value), show.legend = FALSE, size=5) +
-  geom_text(data = dat_label_total, aes(label=value), show.legend = FALSE, size=6) +
-  geom_text(data = disclaimer_label, aes(label=value), show.legend = FALSE, size=4) +
+  annotation_custom(background_divi, -Inf, Inf, -Inf, Inf) +
+  geom_text(data = divi_title_label, aes(label=value), show.legend = FALSE, size=5) +
+  geom_text(data = divi_label_total, aes(label=value), show.legend = FALSE, size=6) +
+  geom_text(data = divi_disclaimer_label, aes(label=value), show.legend = FALSE, size=4) +
   theme_void() +
   theme(aspect.ratio = 10/30)
 
 
+```
 
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
 
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+```{r}
 # intensivregister <- raw_intensivregister$data
 # intensivregister_flat <- purrr::flatten(intensivregister)
 # 
@@ -99,11 +106,5 @@ ggplot(dat, aes(x=posx, y=posy)) +
 # 
 # intensivregister <- ldply(intensivregister, data.frame)
 # ldply(intensivregister, data.frame)
-
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
-
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
-
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
